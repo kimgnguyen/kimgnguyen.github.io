@@ -1,4 +1,2 @@
-theme: jekyll-theme-cayman
-
 - name: Git Auto Commit
   uses: stefanzweifel/git-auto-commit-action@v4.5.1
