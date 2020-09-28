@@ -2899,3 +2899,6 @@
 07:34:33:WU00:FS01:Final credit estimate, 128921.00 points
 07:34:33:WU00:FS01:Cleaning up
 07:34:34:WU01:FS01:0x22:Completed 50000 out of 5000000 steps (1%)
+07:35:28:WU01:FS01:0x22:Completed 100000 out of 5000000 steps (2%)
+07:36:23:WU01:FS01:0x22:Completed 150000 out of 5000000 steps (3%)
+07:37:17:WU01:FS01:0x22:Completed 200000 out of 5000000 steps (4%)
