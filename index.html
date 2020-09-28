@@ -1,110 +1,134 @@
-﻿<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+
+<!DOCTYPE html>
 <html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <title>Folding Client Overview</title>
-    <meta http-equiv="Pragma" content="no-cache" />
-    <meta http-equiv="Cache-Control" content="no-cache" />
-    <link rel="stylesheet" type="text/css" href="BlueTwo.css" />
-  </head>
-  <body>
-    <table class="Overview" width="32%">
-      <tr>
-        <td class="Heading" width="50%">Overview</td>
-        <td class="Plain" width="50%">
-          <a href="summary.html">
-                        Summary Page
-                     </a>
-        </td>
-      </tr>
-      <tr>
-        <td class="LeftCol">
-                     Total Slots
-                  </td>
-        <td class="RightCol">3</td>
-      </tr>
-      <tr>
-        <td class="AltLeftCol">
-                     Working Slots
-                  </td>
-        <td class="AltRightCol">3</td>
-      </tr>
-      <tr>
-        <td class="LeftCol">
-                     Idle Slots
-                  </td>
-        <td class="RightCol">0</td>
-      </tr>
-      <tr>
-        <td class="AltLeftCol">
-                     Total PPD (Points per Day)
-                  </td>
-        <td class="AltRightCol">2,447,844.4</td>
-      </tr>
-      <tr>
-        <td class="LeftCol">
-                     Total PPW (Points per Week)
-                  </td>
-        <td class="RightCol">17,134,910.8</td>
-      </tr>
-      <tr>
-        <td class="AltLeftCol">
-                     Total UPD (Work Units per Day)
-                  </td>
-        <td class="AltRightCol">31.4</td>
-      </tr>
-      <tr>
-        <td class="LeftCol">
-                     Total UPW (Work Units per Week)
-                  </td>
-        <td class="RightCol">219.5</td>
-      </tr>
-      <tr>
-        <td class="AltLeftCol">
-                     Average PPD (per Working Slot)
-                  </td>
-        <td class="AltRightCol">815,948.1</td>
-      </tr>
-      <tr>
-        <td class="LeftCol">
-                     Average PPW (per Working Slot)
-                  </td>
-        <td class="RightCol">5,711,636.9</td>
-      </tr>
-      <tr>
-        <td class="AltLeftCol">
-                     Average UPD (per Working Slot)
-                  </td>
-        <td class="AltRightCol">10.5</td>
-      </tr>
-      <tr>
-        <td class="LeftCol">
-                     Average UPW (per Working Slot)
-                  </td>
-        <td class="RightCol">73.2</td>
-      </tr>
-      <tr>
-        <td class="AltLeftCol">Completed Work Units</td>
-        <td class="AltRightCol">1</td>
-      </tr>
-      <tr>
-        <td class="LeftCol">Failed Work Units</td>
-        <td class="RightCol">0</td>
-      </tr>
-      <tr>
-        <td class="AltLeftCol">Total Completed Work Units</td>
-        <td class="AltRightCol">2</td>
-      </tr>
-      <tr>
-        <td class="LeftCol">Total Failed Work Units</td>
-        <td class="RightCol">0</td>
-      </tr>
-      <tr>
-        <td class="Plain" colspan="2" align="center" />
-      </tr>
-      <tr>
-        <td class="Plain" colspan="2" align="center">
-                     Page rendered by <a href="https://github.com/harlam357/hfm-net">HFM.NET</a>&nbsp;0.9.21.1259 on September 28, 2020 at 9:53:20 AM +02:00</td>
-      </tr>
-    </table>
-  </body>
+<head>
+<title></title>
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+</head>
+
+<style>
+
+body {
+
+	background-image: url('grunge_patterns.jpg');
+	background-attachment: fixed;
+	color: #333;
+}
+
+.box {
+	border-radius: 3px;
+	background: rgba(101, 101, 101, 0.7); margin: auto; padding: 12px;
+}
+
+.lightbox {
+	zoom: 1.5;
+	position: fixed;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	background: rgba(10, 10, 10, 0.8);
+	text-align: center;
+	margin: auto;
+
+}
+
+div.horizontal {
+	display: flex;
+	justify-content: center;
+	height: 100%;
+}
+
+div.vertical {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	width: 100%;
+}
+
+::-webkit-input-placeholder {
+   color: #955;
+   text-align: center;
+}
+
+::-moz-placeholder {
+   color: #955;
+   text-align: center;
+}
+
+:-ms-input-placeholder {
+   color: #955;
+   text-align: center;
+}
+
+</style>
+
+<body>
+
+	<div id="loginbox" class="lightbox" >
+		<div class="horizontal">
+			<div class="vertical">
+				<div class="box">
+					<input style="margin: 16px; text-align: center;" id="password" type="password" placeholder="password" /> <br />
+					<button id="loginbutton" type="button">Enter</button>
+					<p id="wrongPassword" style="display: none">wrong password</p>
+				</div>
+			</div>
+		</div>
+	</div>
+
+
+
+	<script type="text/javascript" src="https://code.jquery.com/jquery-1.12.0.min.js"></script>
+
+
+	 <script type="text/javascript" src="https://rawcdn.githack.com/chrisveness/crypto/7067ee62f18c76dd4a9d372a00e647205460b62b/sha1.js"></script>
+
+	<script type="text/javascript">
+	"use strict";
+
+
+	function loadPage(pwd) {
+
+		var hash= pwd;
+		hash= Sha1.hash(pwd);
+		var url= hash + "/index.html";
+
+		$.ajax({
+			url : url,
+			dataType : "html",
+			success : function(data) {
+
+				window.location= url;
+
+			},
+			error : function(xhr, ajaxOptions, thrownError) {
+
+
+				parent.location.hash= hash;
+
+				//$("#wrongPassword").show();
+				$("#password").attr("placeholder","wrong password");
+				$("#password").val("");
+			}
+		});
+	}
+
+
+	$("#loginbutton").on("click", function() {
+		loadPage($("#password").val());
+	});
+	$("#password").keypress(function(e) {
+		if (e.which == 13) {
+
+			loadPage($("#password").val());
+		}
+	});
+	$("#password").focus();
+
+	</script>
+
+</body>
 </html>
