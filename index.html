@@ -34,12 +34,21 @@
 		</div>
 		<div class="blanks">
 		</div>
-		<div class="datetime">
+		<div class="time">
 			<h1>Time.</h1> 
-			<div id="datetime">
+			<div id="time">
 				<script>
 					var dt = new Date();
-					document.getElementById("datetime").innerHTML = (("0"+dt.getDate()).slice(-2)) +"."+ (("0"+(dt.getMonth()+1)).slice(-2)) +"."+ (dt.getFullYear()) +" "+ (("0"+dt.getHours()).slice(-2)) +":"+ (("0"+dt.getMinutes()).slice(-2));
+					document.getElementById("time").innerHTML = dt.toLocaleTimeString();				
+				</script>
+			</div>
+		</div>
+		<div class="date">
+			<h1>Date.</h1> 
+			<div id="date">
+				<script>
+					var dt = new Date();
+					document.getElementById("date").innerHTML = dt.toLocaleDateString();			
 				</script>
 			</div>
 		</div>
