@@ -32,20 +32,26 @@
 			<a class="mid" href="http://172.16.1.2/">esxi0</a>
 			<a class="mid" href="http://172.16.1.3">esxi1</a>
 		</div>
-		<div class="blanks">
+		<div class="blank">
 		</div>
 		<div class="time">
 			<h1>Time.</h1> 
 			<span id="time">
 				<script>
-					var dt = new Date();
-					document.getElementById("time").innerHTML = dt.toLocaleTimeString();				
+					function clockTick() {
+						var dt = new Date();
+						document.getElementById("time").innerHTML = dt.toLocaleTimeString();
+					}
+					setInterval(clockTick, 1000);						
 				</script>
 			</span>
 			<span id="date">
 				<script>
-					var dt = new Date();
-					document.getElementById("date").innerHTML = dt.toLocaleDateString();			
+					function clockTick() {
+						var dt = new Date();
+						document.getElementById("date").innerHTML = dt.toLocaleDateString();
+					}
+					setInterval(clockTick, 1000);
 				</script>
 			</span>
 		</div>
