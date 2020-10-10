@@ -27,16 +27,6 @@ h1 {
     text-align: center;
 }
 
-span {
-    text-align: center;
-    text-decoration: none;
-    color: #ecf0f1;
-    opacity: 0.6;
-    margin-bottom: 5px;
-    font-size: small;
-    position: relative;
-}
-
 .links-wrapper {
     display: flex;
 }
@@ -54,7 +44,7 @@ span {
 .links-wrapper div a.mid {
     text-align: center;
     text-decoration: none;
-    color: #7d7d7d;
+    color: #cdc9c3;
     opacity: 0.6;
     margin-bottom: 5px;
     font-size: small;
