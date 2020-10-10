@@ -38,29 +38,5 @@
         </div>
     </div>
 </body>
-
-<footer>
-    <div class="clock">
-        <span id="time">
-            <script>
-                function clockTick() {
-                    var dt = new Date();
-                    document.getElementById("time").innerHTML = dt.toLocaleTimeString();
-                }
-                setInterval(clockTick, 1000);
-            </script>
-        </span>
-
-        <span id="date">
-            <script>
-                function dateTick() {
-                    var dt = new Date();
-                    document.getElementById("date").innerHTML = dt.toLocaleDateString();
-                }
-                setInterval(dateTick, 1000);
-            </script>
-        </span>
-    </div>
-</footer>
-
+ 
 </html>
