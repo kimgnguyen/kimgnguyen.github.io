@@ -42,7 +42,7 @@ h1 {
 }
 
 .links-wrapper div a.mid {
-    text-align: center;
+    text-align: left;
     text-decoration: none;
     color: white;
     opacity: 0.6;
