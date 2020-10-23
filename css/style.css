@@ -52,7 +52,7 @@ h1 {
 }
 
 .links-wrapper div a.mid:hover {
-    color: hotpink;
+    color: white;
     opacity: 1;
     cursor: default;
     transition: all 0.3s ease-in-out 0s;
