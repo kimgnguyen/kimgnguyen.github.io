@@ -34,7 +34,7 @@ h1 {
 .links-wrapper div {
     display: flex;
     flex-direction: column;
-    margin-right: 50px;
+    margin-right: 75px;
 }
 
 .links-wrapper div:last-child {
@@ -45,7 +45,7 @@ h1 {
     text-align: left;
     text-decoration: none;
     color: inherit;
-    opacity: 0.6;
+    opacity: 1;
     margin-bottom: 5px;
     font-size: small;
     position: relative;
