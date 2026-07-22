@@ -12,11 +12,11 @@
 .metar-column a{text-decoration:none;color:inherit;margin-bottom:4px}
 .legend-column{color:rgba(255,255,255,0.5);font-weight:bold;width:100px}
 .metar-part{font-family:inherit;font-size:0.9em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0.8;height:1.2em}
-.cat-badge{display:inline-block;padding:1px 6px;border-radius:4px;font-weight:bold;font-size:0.8em;letter-spacing:0.5px;text-transform:uppercase}
-.cat-vfr{background:rgba(76,175,80,0.25);color:#81c784;border:1px solid rgba(76,175,80,0.5)}
-.cat-mvfr{background:rgba(33,150,243,0.25);color:#64b5f6;border:1px solid rgba(33,150,243,0.5)}
-.cat-ifr{background:rgba(244,67,54,0.25);color:#e57373;border:1px solid rgba(244,67,54,0.5)}
-.cat-lifr{background:rgba(156,39,176,0.25);color:#ba68c8;border:1px solid rgba(156,39,176,0.5)}
+.cat-badge{display:inline-block;font-weight:bold;font-size:0.85em;letter-spacing:0.5px;text-transform:uppercase}
+.cat-vfr{color:#81c784}
+.cat-mvfr{color:#64b5f6}
+.cat-ifr{color:#e57373}
+.cat-lifr{color:#ba68c8}
 .search-container{width:100%;margin-bottom:2rem;display:flex;gap:15px;align-items:baseline}
 #icao-search{width:200px;background:transparent;border:none;border-bottom:1px solid rgba(150,150,150,0.3);color:inherit;font-family:inherit;font-size:1em;padding:8px 0;outline:none;text-transform:uppercase}
 #icao-search::placeholder{opacity:0.5;text-transform:none}
@@ -24,6 +24,7 @@
 #simbrief-btn:hover{background:rgba(150,150,150,0.1)}
 #map-container{width:100%;height:500px;margin-top:4rem;display:none}
 #map-container iframe{width:100%;height:100%;border:1px solid rgba(150,150,150,0.3);border-radius:8px}
+.footer-note{text-align:center;margin-top:3rem;margin-bottom:1rem;opacity:0.5;font-size:0.8em}
 </style>
 </head>
 <body>
@@ -37,7 +38,7 @@
 <div class="metar-column legend-column">
 <strong style="margin-bottom:4px;color:inherit;">FIELD</strong>
 <div class="metar-part">Category</div>
-<div class="metar-part">Time (UTC)</div>
+<div class="metar-part">Time</div>
 <div class="metar-part">Wind</div>
 <div class="metar-part">Visibility</div>
 <div class="metar-part">RVR</div>
@@ -45,13 +46,14 @@
 <div class="metar-part">Clouds</div>
 <div class="metar-part">Temp / Dew</div>
 <div class="metar-part">Altimeter</div>
-<div class="metar-part">Sun (UTC)</div>
+<div class="metar-part">Sun</div>
 </div>
 <div id="search-result" style="display:none;"></div>
 <div id="simbrief-result" style="display:contents;"></div>
 <div id="default-stations" style="display:contents;"></div>
 </div>
 <div id="map-container"></div>
+<div class="footer-note">All times in UTC</div>
 </main>
 </div>
 <script>
