@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>METAR & Flight Dashboard</title>
+<link rel="icon" href="img/flower-96.ico" type="image/x-icon">
+<link rel="stylesheet" href="css/style.css">
+<style>
+#metar-grid{display:flex;flex-direction:row;flex-wrap:wrap;gap:4rem;align-items:flex-start;margin-top:2rem}
+.metar-column{display:flex;flex-direction:column;gap:8px;width:115px;flex-shrink:0}
+.metar-column a{text-decoration:none;color:inherit;margin-bottom:4px}
+.legend-column{color:rgba(255,255,255,0.5);font-weight:bold;width:100px}
+.metar-part{font-family:inherit;font-size:0.9em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:0.8;height:1.2em}
+.cat-badge{display:inline-block;padding:1px 6px;border-radius:4px;font-weight:bold;font-size:0.8em;letter-spacing:0.5px;text-transform:uppercase}
+.cat-vfr{background:rgba(76,175,80,0.25);color:#81c784;border:1px solid rgba(76,175,80,0.5)}
+.cat-mvfr{background:rgba(33,150,243,0.25);color:#64b5f6;border:1px solid rgba(33,150,243,0.5)}
+.cat-ifr{background:rgba(244,67,54,0.25);color:#e57373;border:1px solid rgba(244,67,54,0.5)}
+.cat-lifr{background:rgba(156,39,176,0.25);color:#ba68c8;border:1px solid rgba(156,39,176,0.5)}
+.search-container{width:100%;margin-bottom:2rem;display:flex;gap:15px;align-items:baseline}
+#icao-search{width:200px;background:transparent;border:none;border-bottom:1px solid rgba(150,150,150,0.3);color:inherit;font-family:inherit;font-size:1em;padding:8px 0;outline:none;text-transform:uppercase}
+#icao-search::placeholder{opacity:0.5;text-transform:none}
+#simbrief-btn{background:transparent;border:1px solid rgba(150,150,150,0.3);color:inherit;font-family:inherit;font-size:0.85em;font-weight:bold;padding:8px 12px;border-radius:4px;cursor:pointer;text-transform:uppercase;transition:background 0.2s}
+#simbrief-btn:hover{background:rgba(150,150,150,0.1)}
+#map-container{width:100%;height:500px;margin-top:4rem;display:none}
+#map-container iframe{width:100%;height:100%;border:1px solid rgba(150,150,150,0.3);border-radius:8px}
+</style>
+</head>
+<body>
+<div id="container">
+<main>
+<div class="search-container">
+<input type="text" id="icao-search" placeholder="Search ICAO + Enter" maxlength="4" autocomplete="off">
+<button id="simbrief-btn">Load SimBrief</button>
+</div>
+<div id="metar-grid">
+<div class="metar-column legend-column">
+<strong style="margin-bottom:4px;color:inherit;">FIELD</strong>
+<div class="metar-part">Category</div>
+<div class="metar-part">Time (UTC)</div>
+<div class="metar-part">Wind</div>
+<div class="metar-part">Visibility</div>
+<div class="metar-part">RVR</div>
+<div class="metar-part">Weather</div>
+<div class="metar-part">Clouds</div>
+<div class="metar-part">Temp / Dew</div>
+<div class="metar-part">Altimeter</div>
+<div class="metar-part">Sun (UTC)</div>
+</div>
+<div id="search-result" style="display:none;"></div>
+<div id="simbrief-result" style="display:contents;"></div>
+<div id="default-stations" style="display:contents;"></div>
+</div>
+<div id="map-container"></div>
+</main>
+</div>
+<script>
+const stations=["ESMS","KBCE","LKPR","LSGG","LSZH"],simbriefUser="algapaf";
+const coordsCache={"ESMS":[55.53,13.36],"KBCE":[37.70,-112.14],"LKPR":[50.10,14.26],"LSGG":[46.23,6.11],"LSZH":[47.46,8.55]};
+async function fetchCoords(icao){
+if(coordsCache[icao])return coordsCache[icao];
+try{
+const r=await fetch(`https://aviationweather.gov/api/data/station?ids=${icao}&format=json`);
+if(!r.ok)return null;
+const d=await r.json();
+if(d&&d[0]&&d[0].lat!==undefined&&d[0].lon!==undefined){coordsCache[icao]=[d[0].lat,d[0].lon];return coordsCache[icao];}
+}catch(e){}
+return null;
+}
+function getSunTimes(lat,lon){
+const n=new Date(),start=new Date(Date.UTC(n.getUTCFullYear(),0,0)),dayOfYear=Math.floor((n-start)/86400000);
+const D2R=Math.PI/180,R2D=180/Math.PI,lngHour=lon/15;
+function calc(isSunrise){
+const t=dayOfYear+((isSunrise?6:18)-lngHour)/24,M=(0.9856*t)-3.289;
+let L=(M+(1.916*Math.sin(M*D2R))+(0.020*Math.sin(2*M*D2R))+282.634+360)%360;
+let RA=(R2D*Math.atan(0.91764*Math.tan(L*D2R))+360)%360;
+const Lq=Math.floor(L/90)*90,RAq=Math.floor(RA/90)*90;
+RA=(RA+(Lq-RAq))/15;
+const sinDec=0.39782*Math.sin(L*D2R),cosDec=Math.cos(Math.asin(sinDec));
+const cosH=(Math.cos(90.833*D2R)-(sinDec*Math.sin(lat*D2R)))/(cosDec*Math.cos(lat*D2R));
+if(cosH>1||cosH<-1)return null;
+let H=(isSunrise?(360-R2D*Math.acos(cosH)):(R2D*Math.acos(cosH)))/15;
+const T=H+RA-(0.06571*t)-6.622;
+let UT=(T-lngHour+24)%24;
+return `${Math.floor(UT).toString().padStart(2,'0')}:${Math.floor((UT%1)*60).toString().padStart(2,'0')}`;
+}
+const sr=calc(true),ss=calc(false);
+return(sr&&ss)?`${sr} / ${ss}`:'N/A';
+}
+function calculateFlightCategory(visStr,rawString){
+if(visStr==='CAVOK'||rawString.includes('CAVOK'))return 'VFR';
+let visSM=10;
+if(visStr){
+if(visStr.endsWith('SM')){
+const valStr=visStr.replace('SM','');
+if(valStr.includes('/')){const[num,den]=valStr.split('/').map(Number);visSM=num/den;}
+else if(valStr.startsWith('M'))visSM=0.1;
+else visSM=parseFloat(valStr);
+}else if(/^\d{4}$/.test(visStr))visSM=parseInt(visStr,10)/1609.34;
+}
+let visCat='VFR';
+if(visSM<1)visCat='LIFR';else if(visSM<3)visCat='IFR';else if(visSM<=5)visCat='MVFR';
+let minCeiling=Infinity;
+const ceilingMatches=rawString.match(/\b(BKN|OVC|VV)\d{3}\b/g)||[];
+ceilingMatches.forEach(match=>{const feet=parseInt(match.slice(3),10)*100;if(feet<minCeiling)minCeiling=feet;});
+let ceilCat='VFR';
+if(minCeiling<500)ceilCat='LIFR';else if(minCeiling<1000)ceilCat='IFR';else if(minCeiling<=3000)ceilCat='MVFR';
+const priority={'LIFR':4,'IFR':3,'MVFR':2,'VFR':1};
+return priority[visCat]>priority[ceilCat]?visCat:ceilCat;
+}
+function categorizeMetar(rawString){
+const rows={cat:'VFR',time:'',wind:'',vis:'',rvr:'',wx:'',clouds:'',temp:'',alt:'',sun:''};
+if(!rawString)return rows;
+const parts=rawString.trim().split(/\s+/);
+if(parts[0]&&parts[0].length===4&&/^[A-Z0-9]{4}$/.test(parts[0]))parts.shift();
+const altIdx=parts.findIndex(p=>/^[AQ]\d{4}$/.test(p));
+if(altIdx!==-1){
+const a=parts[altIdx];
+if(a.startsWith('Q')){const hpa=parseInt(a.slice(1),10);rows.alt=`Q${hpa} (${(hpa/33.8639).toFixed(2)})`;}
+else if(a.startsWith('A')){const inhgRaw=parseInt(a.slice(1),10),inhg=(inhgRaw/100).toFixed(2);rows.alt=`A${a.slice(1)} (${Math.round(inhg*33.8639)})`;}
+else rows.alt=a;
+}
+const tempIdx=parts.findIndex(p=>/^M?\d{2}\/M?\d{2}$/.test(p));
+if(tempIdx!==-1)rows.temp=parts[tempIdx];
+let currentIndex=0;
+if(parts[currentIndex]&&parts[currentIndex].endsWith('Z')){rows.time=parts[currentIndex];currentIndex++;}
+if(parts[currentIndex]==='AUTO'||parts[currentIndex]==='COR')currentIndex++;
+if(parts[currentIndex]&&(parts[currentIndex].endsWith('KT')||parts[currentIndex].endsWith('MPS')||parts[currentIndex].endsWith('KMH')||parts[currentIndex]==='00000KT')){rows.wind=parts[currentIndex];currentIndex++;}
+if(parts[currentIndex]&&(/^\d{4}$/.test(parts[currentIndex])||parts[currentIndex].endsWith('SM')||parts[currentIndex]==='CAVOK')){rows.vis=parts[currentIndex];currentIndex++;}
+const endIdx=tempIdx!==-1?tempIdx:(altIdx!==-1?altIdx:parts.length);
+const middleParts=parts.slice(currentIndex,endIdx),wxList=[],cloudList=[],rvrList=[];
+const cloudRegex=/^(FEW|SCT|BKN|OVC|VV)\d{3}(CB|TCU)?$/,wxRegex=/^([-+]|VC)?(MI|PR|BC|DR|BL|SH|TS|FZ)?(DZ|RA|SN|SG|IC|PL|GR|GS|UP|BR|FG|FU|VA|DU|SA|HZ|PY|PO|SQ|FC|SS|DS)+$/;
+middleParts.forEach(part=>{
+if(part.startsWith('R')&&part.includes('/'))rvrList.push(part);
+else if(cloudRegex.test(part)||['CLR','SKC','NSC','NCD'].includes(part))cloudList.push(part);
+else if(wxRegex.test(part))wxList.push(part);
+else{if(part.startsWith('BKN')||part.startsWith('OVC')||part.startsWith('SCT')||part.startsWith('FEW')||part.startsWith('VV'))cloudList.push(part);else wxList.push(part);}
+});
+rows.rvr=rvrList.join(' ');
+if(rows.vis==='CAVOK'){rows.clouds='CAVOK';rows.wx='';}
+else{rows.wx=wxList.join(' ');rows.clouds=cloudList.join(' ');}
+rows.cat=calculateFlightCategory(rows.vis,rawString);
+if(rows.time){const tm=rows.time.match(/(\d{2})(\d{2})(\d{2})Z/);if(tm){const n=new Date(),m=new Date(Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),tm[1],tm[2],tm[3]));if(n.getUTCDate()<tm[1]-10)m.setUTCMonth(m.getUTCMonth()-1);const diff=Math.max(0,Math.round((n-m)/60000));rows.time=`${tm[2]}:${tm[3]} <span style="opacity:0.6;font-size:0.85em">(${diff}m)</span>`;}}
+return rows;
+}
+async function createMetarColumn(icao,rawMetar,label=null){
+const column=document.createElement('div');
+column.className='metar-column';
+const titleLink=document.createElement('a');
+titleLink.href=`https://aviationweather.gov/data/metar/?id=${icao}`;
+titleLink.target='_blank';
+const titleStrong=document.createElement('strong');
+titleStrong.textContent=label?label:icao;
+titleLink.appendChild(titleStrong);
+column.appendChild(titleLink);
+if(rawMetar){
+const parsedData=categorizeMetar(rawMetar);
+const c=await fetchCoords(icao.slice(0,4));
+if(c)parsedData.sun=getSunTimes(c[0],c[1]);
+const catDiv=document.createElement('div');
+catDiv.className='metar-part';
+const badgeSpan=document.createElement('span');
+badgeSpan.className=`cat-badge cat-${parsedData.cat.toLowerCase()}`;
+badgeSpan.textContent=parsedData.cat;
+catDiv.appendChild(badgeSpan);
+column.appendChild(catDiv);
+['time','wind','vis','rvr','wx','clouds','temp','alt','sun'].forEach(key=>{
+const partDiv=document.createElement('div');
+partDiv.className='metar-part';
+partDiv.innerHTML=parsedData[key]||'&nbsp;';
+if(parsedData[key])partDiv.title=parsedData[key];
+column.appendChild(partDiv);
+});
+}else{
+for(let i=0;i<9;i++){
+const errDiv=document.createElement('div');
+errDiv.className='metar-part';
+errDiv.innerHTML='&nbsp;';
+column.appendChild(errDiv);
+}
+}
+return column;
+}
+async function getMetarData(){
+const container=document.getElementById('default-stations'),stationString=stations.join(',');
+try{
+const response=await fetch(`https://metar.vatsim.net/${stationString}`);
+if(!response.ok)throw new Error("Failed");
+const textData=await response.text();
+container.innerHTML='';
+const metarDict={};
+textData.split('\n').forEach(line=>{
+const stationId=line.substring(0,4).trim();
+if(stationId)metarDict[stationId]=line;
+});
+for(const stationId of stations){
+const col=await createMetarColumn(stationId,metarDict[stationId]);
+container.appendChild(col);
+}
+}catch(error){container.innerHTML=`<p style="color:red;">Error loading METARs.</p>`;}
+}
+getMetarData();
+setInterval(getMetarData,900000);
+const searchInput=document.getElementById('icao-search'),searchResultContainer=document.getElementById('search-result'),mapContainer=document.getElementById('map-container'),simbriefBtn=document.getElementById('simbrief-btn'),simbriefResult=document.getElementById('simbrief-result');
+simbriefBtn.addEventListener('click',async function(){
+simbriefResult.innerHTML=`<div class="metar-column" style="border-right:1px solid rgba(255,255,255,0.3);padding-right:2rem;margin-right:-2rem"><strong>SIMB</strong><div class="metar-part">Fetching...</div></div>`;
+try{
+const sbResponse=await fetch(`https://www.simbrief.com/api/xml.fetcher.php?username=${simbriefUser}&json=1`);
+if(!sbResponse.ok)throw new Error("Failed");
+const sbData=await sbResponse.json(),org=sbData.origin?.icao_code,dest=sbData.destination?.icao_code;
+if(!org||!dest)throw new Error("Invalid");
+const sbAirports=[];
+if(org)sbAirports.push({icao:org,label:`${org} (DEP)`});
+if(dest)sbAirports.push({icao:dest,label:`${dest} (ARR)`});
+if(sbData.alternate?.icao_code)sbAirports.push({icao:sbData.alternate.icao_code,label:`${sbData.alternate.icao_code} (ALT)`});
+const icaoString=sbAirports.map(i=>i.icao).join(','),metarRes=await fetch(`https://metar.vatsim.net/${icaoString}`),metarText=await metarRes.text(),metarDict={};
+metarText.split('\n').forEach(line=>{const stationId=line.substring(0,4).trim();if(stationId)metarDict[stationId]=line;});
+simbriefResult.innerHTML='';
+for(let idx=0;idx<sbAirports.length;idx++){
+const item=sbAirports[idx];
+const col=await createMetarColumn(item.icao,metarDict[item.icao],item.label);
+if(idx===sbAirports.length-1){col.style.borderRight='1px solid rgba(255,255,255,0.3)';col.style.paddingRight='2rem';col.style.marginRight='-2rem';}
+simbriefResult.appendChild(col);
+}
+let targetIcao=org;
+if(sbData.times&&sbData.times.est_out&&sbData.times.est_in){
+const now=Date.now(),departureTime=parseInt(sbData.times.est_out)*1000,arrivalTime=parseInt(sbData.times.est_in)*1000;
+if(now<=departureTime+900000)targetIcao=org;else if(now>=arrivalTime-900000)targetIcao=dest;else targetIcao=dest;
+}
+mapContainer.style.display='block';
+mapContainer.innerHTML=`<iframe src="https://globe.adsbexchange.com/?airport=${targetIcao}&zoom=9&enableLabels&extendedLabels=2&scale=0.7&altitudechart=0&hidesidebar&hidebuttons&centerReceiver&overlay=o1" title="Radar"></iframe>`;
+}catch(error){simbriefResult.innerHTML=`<div class="metar-column" style="border-right:1px solid rgba(255,255,255,0.3);padding-right:2rem;margin-right:-2rem"><strong>SIMB</strong><div class="metar-part">No flight.</div></div>`;}
+});
+searchInput.addEventListener('keypress',async function(event){
+if(event.key==='Enter'){
+const icao=searchInput.value.trim().toUpperCase();
+if(icao.length<3)return;
+if(stations.includes(icao)){
+searchResultContainer.innerHTML='';
+searchInput.value='';
+mapContainer.style.display='block';
+mapContainer.innerHTML=`<iframe src="https://globe.adsbexchange.com/?airport=${icao}&zoom=9&enableLabels&extendedLabels=2&scale=0.7&altitudechart=0&hidesidebar&hidebuttons&centerReceiver&overlay=o1" title="${icao} Radar"></iframe>`;
+return;
+}
+searchResultContainer.style.display='flex';
+searchResultContainer.innerHTML=`<div class="metar-column"><strong>${icao}</strong><div class="metar-part">...</div></div>`;
+try{
+const metarRes=await fetch(`https://metar.vatsim.net/${icao}`);
+if(!metarRes.ok)throw new Error("Failed");
+const textData=(await metarRes.text()).trim();
+searchResultContainer.innerHTML='';
+const col=await createMetarColumn(icao,textData||null);
+searchResultContainer.appendChild(col);
+searchInput.value='';
+mapContainer.style.display='block';
+mapContainer.innerHTML=`<iframe src="https://globe.adsbexchange.com/?airport=${icao}&zoom=9&enableLabels&extendedLabels=2&scale=0.7&altitudechart=0&hidesidebar&hidebuttons&centerReceiver&overlay=o1" title="${icao} Radar"></iframe>`;
+}catch(error){searchResultContainer.innerHTML=`<div class="metar-column"><strong>${icao}</strong><div class="metar-part">Error</div></div>`;}
+}
+});
+</script>
+</body>
+</html>
