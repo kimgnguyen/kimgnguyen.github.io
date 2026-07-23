@@ -5,8 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Weather Radar</title>
 <link rel="icon" href="../img/favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="../css/style.css">
-<!-- <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" /> -->
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
 <style>
 :root {
 --bg-color: #1e1e1e;
@@ -33,6 +32,8 @@ L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
 maxZoom: 18,
 attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
 }).addTo(map);
+let currentRadarLayer = null;
+function loadRadarLayer() {
 fetch('https://api.rainviewer.com/public/weather-maps.json')
 .then(response => response.json())
 .then(data => {
@@ -40,15 +41,27 @@ const host = data.host;
 const pastFrames = data.radar.past;
 if (pastFrames.length > 0) {
 const latestFrame = pastFrames[pastFrames.length - 1].path;
-const tileUrl = `${host}${latestFrame}/256/{z}/{x}/{y}/2/1_1.png`;
-L.tileLayer(tileUrl, {
+const tileUrl = `${host}${latestFrame}/256/{z}/{x}/{y}/4/1_1.png`;
+const newLayer = L.tileLayer(tileUrl, {
 opacity: 0.7,
 maxZoom: 7,
 attribution: 'Weather data &copy; <a href="https://www.rainviewer.com/">RainViewer</a>'
-}).addTo(map);
+});
+newLayer.addTo(map);
+if (currentRadarLayer) {
+setTimeout(() => {
+map.removeLayer(currentRadarLayer);
+currentRadarLayer = newLayer;
+}, 1000);
+} else {
+currentRadarLayer = newLayer;
+}
 }
 })
 .catch(error => console.error('Error fetching RainViewer API:', error));
+}
+loadRadarLayer();
+setInterval(loadRadarLayer, 900000);
 </script>
 </body>
 </html>
