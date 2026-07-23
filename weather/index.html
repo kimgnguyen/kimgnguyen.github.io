@@ -1,65 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Weather Radar - France</title>
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <style>
-        :root {
-            --bg-color: #1e1e1e;
-        }
-        
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            background-color: var(--bg-color);
-            font-family: sans-serif;
-        }
-        
-        #weather-map {
-            width: 100%;
-            height: 100vh;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Weather Radar</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+:root {
+--bg-color: #1e1e1e;
+}
+body, html {
+margin: 0;
+padding: 0;
+height: 100%;
+background-color: var(--bg-color);
+font-family: sans-serif;
+}
+#weather-map {
+width: 100%;
+height: 100vh;
+}
+</style>
 </head>
 <body>
-    <div id="weather-map"></div>
-
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-    <script>
-        // Center on France
-        const map = L.map('weather-map').setView([46.2276, 2.2137], 6);
-
-        // Dark-themed basemap for a clean dashboard look
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 18,
-            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        }).addTo(map);
-
-        // Fetch the most recent radar frame from RainViewer
-        fetch('https://api.rainviewer.com/public/weather-maps.json')
-            .then(response => response.json())
-            .then(data => {
-                const host = data.host;
-                const pastFrames = data.radar.past;
-                
-                if (pastFrames.length > 0) {
-                    const latestFrame = pastFrames[pastFrames.length - 1].path;
-                    
-                    // Format: {host}{path}/256/{z}/{x}/{y}/2/1_1.png
-                    // 2 = color scheme, 1_1 = smoothed radar and snow styling
-                    const tileUrl = `${host}${latestFrame}/256/{z}/{x}/{y}/2/1_1.png`;
-                    
-                    L.tileLayer(tileUrl, {
-                        opacity: 0.7,
-                        maxZoom: 7,
-                        attribution: 'Weather data &copy; <a href="https://www.rainviewer.com/">RainViewer</a>'
-                    }).addTo(map);
-                }
-            })
-            .catch(error => console.error('Error fetching RainViewer API:', error));
-    </script>
+<div id="weather-map"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const map = L.map('weather-map').setView([46.2276, 2.2137], 6);
+L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+maxZoom: 18,
+attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>'
+}).addTo(map);
+fetch('https://api.rainviewer.com/public/weather-maps.json')
+.then(response => response.json())
+.then(data => {
+const host = data.host;
+const pastFrames = data.radar.past;
+if (pastFrames.length > 0) {
+const latestFrame = pastFrames[pastFrames.length - 1].path;
+const tileUrl = `${host}${latestFrame}/256/{z}/{x}/{y}/2/1_1.png`;
+L.tileLayer(tileUrl, {
+opacity: 0.7,
+maxZoom: 7,
+attribution: 'Weather data &copy; <a href="https://www.rainviewer.com/">RainViewer</a>'
+}).addTo(map);
+}
+})
+.catch(error => console.error('Error fetching RainViewer API:', error));
+</script>
 </body>
 </html>
