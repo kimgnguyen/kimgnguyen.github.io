@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>METAR & Flight Dashboard</title>
+<title>METAR</title>
 <link rel="icon" href="../img/favicon.ico" type="image/x-icon">
 <link rel="stylesheet" href="../css/style.css">
 <style>
@@ -22,8 +22,6 @@
 #icao-search::placeholder{opacity:0.5;text-transform:none}
 .action-btn{background:transparent;border:1px solid rgba(150,150,150,0.3);color:inherit;font-family:inherit;font-size:0.85em;font-weight:bold;padding:8px 12px;border-radius:4px;cursor:pointer;text-transform:uppercase;transition:background 0.2s}
 .action-btn:hover{background:rgba(150,150,150,0.1)}
-#map-container{width:100%;height:500px;margin-top:4rem;display:none}
-#map-container iframe{width:100%;height:100%;border:1px solid rgba(150,150,150,0.3);border-radius:8px}
 footer{text-align:center;margin-top:4rem;margin-bottom:1rem;display:flex;flex-direction:column;align-items:center;gap:15px}
 .footer-note{opacity:0.5;font-size:0.8em}
 </style>
@@ -33,7 +31,6 @@ footer{text-align:center;margin-top:4rem;margin-bottom:1rem;display:flex;flex-di
 <main>
 <div class="search-container">
 <input type="text" id="icao-search" placeholder="Search ICAO + Enter" maxlength="4" autocomplete="off">
-<button id="toggle-map-btn" class="action-btn">Toggle Map</button>
 </div>
 <div id="metar-grid">
 <div class="metar-column legend-column">
@@ -53,7 +50,6 @@ footer{text-align:center;margin-top:4rem;margin-bottom:1rem;display:flex;flex-di
 <div id="simbrief-result" style="display:contents;"></div>
 <div id="default-stations" style="display:contents;"></div>
 </div>
-<div id="map-container"></div>
 <footer>
 <button id="simbrief-btn" class="action-btn">Load SimBrief</button>
 <div class="footer-note">All times in UTC</div>
@@ -208,15 +204,7 @@ container.appendChild(col);
 }
 getMetarData();
 setInterval(getMetarData,900000);
-const searchInput=document.getElementById('icao-search'),searchResultContainer=document.getElementById('search-result'),mapContainer=document.getElementById('map-container'),simbriefBtn=document.getElementById('simbrief-btn'),simbriefResult=document.getElementById('simbrief-result'),toggleMapBtn=document.getElementById('toggle-map-btn');
-toggleMapBtn.addEventListener('click',()=>{
-if(!mapContainer.innerHTML.includes('iframe')){
-const majors=["KJFK","EGLL","LFPG","RJTT","OMDB","YSSY","KLAX","EDDF","EHAM","WSSS","VHHH"];
-const randIcao=majors[Math.floor(Math.random()*majors.length)];
-mapContainer.innerHTML=`<iframe src="https://globe.adsbexchange.com/?airport=${randIcao}&zoom=9&enableLabels&extendedLabels=2&scale=0.7&altitudechart=0&hidesidebar&hidebuttons&centerReceiver&overlay=o1" title="Random Radar"></iframe>`;
-}
-mapContainer.style.display=mapContainer.style.display==='none'||mapContainer.style.display===''?'block':'none';
-});
+const searchInput=document.getElementById('icao-search'),searchResultContainer=document.getElementById('search-result'),simbriefBtn=document.getElementById('simbrief-btn'),simbriefResult=document.getElementById('simbrief-result');
 simbriefBtn.addEventListener('click',async function(){
 simbriefResult.innerHTML=`<div class="metar-column" style="border-right:1px solid rgba(255,255,255,0.3);padding-right:2rem;margin-right:-2rem"><strong>SIMB</strong><div class="metar-part">Fetching...</div></div>`;
 try{
@@ -237,13 +225,6 @@ const col=await createMetarColumn(item.icao,metarDict[item.icao],item.label);
 if(idx===sbAirports.length-1){col.style.borderRight='1px solid rgba(255,255,255,0.3)';col.style.paddingRight='2rem';col.style.marginRight='-2rem';}
 simbriefResult.appendChild(col);
 }
-let targetIcao=org;
-if(sbData.times&&sbData.times.est_out&&sbData.times.est_in){
-const now=Date.now(),departureTime=parseInt(sbData.times.est_out)*1000,arrivalTime=parseInt(sbData.times.est_in)*1000;
-if(now<=departureTime+900000)targetIcao=org;else if(now>=arrivalTime-900000)targetIcao=dest;else targetIcao=dest;
-}
-mapContainer.style.display='block';
-mapContainer.innerHTML=`<iframe src="https://globe.adsbexchange.com/?airport=${targetIcao}&zoom=9&enableLabels&extendedLabels=2&scale=0.7&altitudechart=0&hidesidebar&hidebuttons&centerReceiver&overlay=o1" title="Radar"></iframe>`;
 }catch(error){simbriefResult.innerHTML=`<div class="metar-column" style="border-right:1px solid rgba(255,255,255,0.3);padding-right:2rem;margin-right:-2rem"><strong>SIMB</strong><div class="metar-part">No flight.</div></div>`;}
 });
 searchInput.addEventListener('keypress',async function(event){
@@ -253,8 +234,6 @@ if(icao.length<3)return;
 if(stations.includes(icao)){
 searchResultContainer.innerHTML='';
 searchInput.value='';
-mapContainer.style.display='block';
-mapContainer.innerHTML=`<iframe src="https://globe.adsbexchange.com/?airport=${icao}&zoom=9&enableLabels&extendedLabels=2&scale=0.7&altitudechart=0&hidesidebar&hidebuttons&centerReceiver&overlay=o1" title="${icao} Radar"></iframe>`;
 return;
 }
 searchResultContainer.style.display='flex';
@@ -267,8 +246,6 @@ searchResultContainer.innerHTML='';
 const col=await createMetarColumn(icao,textData||null);
 searchResultContainer.appendChild(col);
 searchInput.value='';
-mapContainer.style.display='block';
-mapContainer.innerHTML=`<iframe src="https://globe.adsbexchange.com/?airport=${icao}&zoom=9&enableLabels&extendedLabels=2&scale=0.7&altitudechart=0&hidesidebar&hidebuttons&centerReceiver&overlay=o1" title="${icao} Radar"></iframe>`;
 }catch(error){searchResultContainer.innerHTML=`<div class="metar-column"><strong>${icao}</strong><div class="metar-part">Error</div></div>`;}
 }
 });
