@@ -1,91 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LSGG ADS-BExchange Map</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            font-family: system-ui, sans-serif;
-            overflow: hidden; /* Prevents scrollbars around the iframe */
-        }
-        
-        #search-container {
-            position: absolute;
-            top: 20px;
-            right: 20px;
-            z-index: 1000;
-            background: white;
-            padding: 10px;
-            border-radius: 8px;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
-            display: flex;
-            gap: 8px;
-        }
-        
-        #search-container input {
-            padding: 8px 12px;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-            font-size: 14px;
-            outline: none;
-        }
-        
-        #search-container button {
-            padding: 8px 16px;
-            background: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 14px;
-        }
-        
-        #search-container button:hover {
-            background: #0056b3;
-        }
-
-        #adsb-iframe {
-            width: 100%;
-            height: 100vh;
-            border: none;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LSGG ADS-BExchange Map</title>
+<style>
+body, html {
+margin: 0;
+padding: 0;
+height: 100%;
+font-family: system-ui, sans-serif;
+overflow: hidden; /* Prevents scrollbars around the iframe */
+}
+#search-container {
+position: absolute;
+top: 20px;
+right: 20px;
+z-index: 1000;
+background: white;
+padding: 10px;
+border-radius: 8px;
+box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+display: flex;
+gap: 8px;
+}
+#search-container input {
+padding: 8px 12px;
+border: 1px solid #ccc;
+border-radius: 4px;
+font-size: 14px;
+outline: none;
+}
+#search-container button {
+padding: 8px 16px;
+background: #007bff;
+color: white;
+border: none;
+border-radius: 4px;
+cursor: pointer;
+font-size: 14px;
+}
+#search-container button:hover {
+background: #0056b3;
+}
+#adsb-iframe {
+width: 100%;
+height: 100vh;
+border: none;
+}
+</style>
 </head>
 <body>
-
-    <!-- Custom Search UI overlaying the iframe -->
-    <div id="search-container">
-        <input type="text" id="flightSearch" placeholder="Search Callsign (e.g. SWR)">
-        <button onclick="searchFlight()">Search</button>
-        <button onclick="resetMap()" style="background: #6c757d;">Reset</button>
-    </div>
-
-    <!-- The ADSBExchange Map -->
-    <iframe id="adsb-iframe" src="https://globe.adsbexchange.com/?airport=LSGG&zoom=9&enableLabels&extendedLabels=2&scale=0.7&altitudechart=0&hidesidebar&hidebuttons&centerReceiver&overlay=o1" title="LSGG Radar"></iframe>
-
-    <script>
-        const iframe = document.getElementById('adsb-iframe');
-        
-        // Base URL with your exact parameters centered on LSGG
-        const baseUrl = "https://globe.adsbexchange.com/?airport=LSGG&zoom=9&enableLabels&extendedLabels=2&scale=0.7&altitudechart=0&hidesidebar&hidebuttons&centerReceiver&overlay=o1";
-
-        function searchFlight() {
-            const query = document.getElementById('flightSearch').value.trim().toUpperCase();
-            if (query) {
-                // Appending &callsign= to the URL forces tar1090 to filter/focus on that specific flight
-                iframe.src = `${baseUrl}&callsign=${query}`;
-            }
-        }
-
-        function resetMap() {
-            document.getElementById('flightSearch').value = "";
-            // Resetting the iframe src back to the base URL clears the search
-            iframe.src = baseUrl;
-        }
-    </script>
+<div id="search-container">
+<input type="text" id="flightSearch" placeholder="Search Callsign (e.g. SWR)">
+<button onclick="searchFlight()">Search</button>
+<button onclick="resetMap()" style="background: #6c757d;">Reset</button>
+</div>
+<iframe id="adsb-iframe" src="https://globe.adsbexchange.com/?airport=LSGG&zoom=9&enableLabels&extendedLabels=2&scale=0.7&altitudechart=0&hidesidebar&hidebuttons&centerReceiver&overlay=o1" title="LSGG Radar"></iframe>
+<script>
+const iframe = document.getElementById('adsb-iframe');
+const baseUrl = "https://globe.adsbexchange.com/?airport=LSGG&zoom=9&enableLabels&extendedLabels=2&scale=0.7&altitudechart=0&hidesidebar&hidebuttons&centerReceiver&overlay=o1";
+function searchFlight() {
+const query = document.getElementById('flightSearch').value.trim().toUpperCase();
+if (query) {
+iframe.src = `${baseUrl}&callsign=${query}`;
+}
+}
+function resetMap() {
+document.getElementById('flightSearch').value = "";
+iframe.src = baseUrl;
+}
+</script>
 </body>
 </html>
