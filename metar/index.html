@@ -24,8 +24,10 @@ span.cat-badge.cat-lifr{color:#e040fb !important}
 .role-arr, .role-arr a, .role-arr .metar-part, .role-arr strong,
 .role-alt, .role-alt a, .role-alt .metar-part, .role-alt strong {color: var(--col-theme) !important;}
 .search-container{width:100%;margin-bottom:2rem;display:flex;gap:15px;align-items:baseline}
-#icao-search{width:200px;background:transparent;border:none;border-bottom:1px solid rgba(150,150,150,0.3);color:inherit;font-family:inherit;font-size:1em;padding:8px 0;outline:none;text-transform:uppercase}
-#icao-search::placeholder{opacity:0.5;text-transform:none}
+#icao-search, #simbrief-user{background:transparent;border:none;border-bottom:1px solid rgba(150,150,150,0.3);color:inherit;font-family:inherit;font-size:1em;padding:8px 0;outline:none}
+#icao-search{width:200px;text-transform:uppercase}
+#simbrief-user{width:150px;text-align:center}
+#icao-search::placeholder, #simbrief-user::placeholder{opacity:0.5;text-transform:none}
 .action-btn{background:transparent;border:1px solid rgba(150,150,150,0.3);color:inherit;font-family:inherit;font-size:0.85em;font-weight:bold;padding:8px 12px;border-radius:4px;cursor:pointer;text-transform:uppercase;transition:background 0.2s}
 .action-btn:hover{background:rgba(150,150,150,0.1)}
 footer{text-align:center;margin-top:4rem;margin-bottom:1rem;display:flex;flex-direction:column;align-items:center;gap:15px}
@@ -57,13 +59,16 @@ footer{text-align:center;margin-top:4rem;margin-bottom:1rem;display:flex;flex-di
 <div id="default-stations" style="display:contents;"></div>
 </div>
 <footer>
+<div style="display:flex;gap:15px;align-items:baseline;justify-content:center">
+<input type="text" id="simbrief-user" value="algapaf" placeholder="Username" spellcheck="false" autocomplete="off">
 <button id="simbrief-btn" class="action-btn">Load SimBrief</button>
+</div>
 <div class="footer-note">All times in UTC</div>
 </footer>
 </main>
 </div>
 <script>
-const stations=["ENGM","KBCE","LKPR","LSGG","LSZH"],simbriefUser="algapaf";
+const stations=["ENGM","KBCE","LKPR","LSGG","LSZH"];
 const coordsCache={"ENGM":[60.11,11.10],"KBCE":[37.70,-112.14],"LKPR":[50.10,14.26],"LSGG":[46.23,6.11],"LSZH":[47.46,8.55]};
 async function fetchCoords(icao){
 if(coordsCache[icao])return coordsCache[icao];
@@ -214,9 +219,14 @@ getMetarData();
 setInterval(getMetarData,900000);
 const searchInput=document.getElementById('icao-search'),searchResultContainer=document.getElementById('search-result'),simbriefBtn=document.getElementById('simbrief-btn'),simbriefResult=document.getElementById('simbrief-result');
 simbriefBtn.addEventListener('click',async function(){
+const sbUser=document.getElementById('simbrief-user').value.trim();
+if(!sbUser){
+simbriefResult.innerHTML=`<div class="metar-column" style="border-right:1px solid rgba(255,255,255,0.3);padding-right:2rem;margin-right:-2rem"><strong>SIMB</strong><div class="metar-part">No User</div></div>`;
+return;
+}
 simbriefResult.innerHTML=`<div class="metar-column" style="border-right:1px solid rgba(255,255,255,0.3);padding-right:2rem;margin-right:-2rem"><strong>SIMB</strong><div class="metar-part">Fetching...</div></div>`;
 try{
-const sbResponse=await fetch(`https://www.simbrief.com/api/xml.fetcher.php?username=${simbriefUser}&json=1`);
+const sbResponse=await fetch(`https://www.simbrief.com/api/xml.fetcher.php?username=${sbUser}&json=1`);
 if(!sbResponse.ok)throw new Error("Failed");
 const sbData=await sbResponse.json(),org=sbData.origin?.icao_code,dest=sbData.destination?.icao_code;
 if(!org||!dest)throw new Error("Invalid");
