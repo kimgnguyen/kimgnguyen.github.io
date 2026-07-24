@@ -153,7 +153,7 @@ rows.rvr=rvrList.join(' ');
 if(rows.vis==='CAVOK'){rows.clouds='CAVOK';rows.wx='';}
 else{rows.wx=wxList.join(' ');rows.clouds=cloudList.join(' ');}
 rows.cat=calculateFlightCategory(rows.vis,rawString);
-if(rows.time){const tm=rows.time.match(/(\d{2})(\d{2})(\d{2})Z/);if(tm){const n=new Date(),m=new Date(Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),tm[1],tm[2],tm[3]));if(n.getUTCDate()<tm[1]-10)m.setUTCMonth(m.getUTCMonth()-1);const diff=Math.max(0,Math.round((n-m)/60000));rows.time=`${tm[2]}:${tm[3]} <span style="opacity:0.6;font-size:0.85em">(${diff}m)</span>`;}}
+if(rows.time){const tm=rows.time.match(/(\d{2})(\d{2})(\d{2})Z/);if(tm){rows.time=`${tm[2]}:${tm[3]}`;}}
 return rows;
 }
 async function createMetarColumn(icao,rawMetar,label=null,role=null){
