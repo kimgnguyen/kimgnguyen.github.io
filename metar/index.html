@@ -17,6 +17,9 @@
 .cat-mvfr{color:#64b5f6}
 .cat-ifr{color:#e57373}
 .cat-lifr{color:#ba68c8}
+.role-dep{color:#64b5f6}
+.role-arr{color:#81c784}
+.role-alt{color:#ffb74d}
 .search-container{width:100%;margin-bottom:2rem;display:flex;gap:15px;align-items:baseline}
 #icao-search{width:200px;background:transparent;border:none;border-bottom:1px solid rgba(150,150,150,0.3);color:inherit;font-family:inherit;font-size:1em;padding:8px 0;outline:none;text-transform:uppercase}
 #icao-search::placeholder{opacity:0.5;text-transform:none}
@@ -145,9 +148,10 @@ rows.cat=calculateFlightCategory(rows.vis,rawString);
 if(rows.time){const tm=rows.time.match(/(\d{2})(\d{2})(\d{2})Z/);if(tm){const n=new Date(),m=new Date(Date.UTC(n.getUTCFullYear(),n.getUTCMonth(),tm[1],tm[2],tm[3]));if(n.getUTCDate()<tm[1]-10)m.setUTCMonth(m.getUTCMonth()-1);const diff=Math.max(0,Math.round((n-m)/60000));rows.time=`${tm[2]}:${tm[3]} <span style="opacity:0.6;font-size:0.85em">(${diff}m)</span>`;}}
 return rows;
 }
-async function createMetarColumn(icao,rawMetar,label=null){
+async function createMetarColumn(icao,rawMetar,label=null,role=null){
 const column=document.createElement('div');
 column.className='metar-column';
+if(role)column.classList.add(role);
 column.setAttribute('data-icao',icao.slice(0,4));
 const titleLink=document.createElement('a');
 titleLink.href=`https://aviationweather.gov/data/metar/?id=${icao}`;
@@ -214,15 +218,23 @@ if(!sbResponse.ok)throw new Error("Failed");
 const sbData=await sbResponse.json(),org=sbData.origin?.icao_code,dest=sbData.destination?.icao_code;
 if(!org||!dest)throw new Error("Invalid");
 const sbAirports=[];
-if(org)sbAirports.push({icao:org,label:`${org} (DEP)`});
-if(dest)sbAirports.push({icao:dest,label:`${dest} (ARR)`});
-if(sbData.alternate?.icao_code)sbAirports.push({icao:sbData.alternate.icao_code,label:`${sbData.alternate.icao_code} (ALT)`});
-document.querySelectorAll('.metar-column strong').forEach(st=>{if(st.textContent!=='FIELD'&&st.textContent!=='SIMB')st.textContent=st.textContent.substring(0,4);});
+if(org)sbAirports.push({icao:org,label:`${org} (DEP)`,role:'role-dep'});
+if(dest)sbAirports.push({icao:dest,label:`${dest} (ARR)`,role:'role-arr'});
+if(sbData.alternate?.icao_code)sbAirports.push({icao:sbData.alternate.icao_code,label:`${sbData.alternate.icao_code} (ALT)`,role:'role-alt'});
+document.querySelectorAll('.metar-column').forEach(col=>{
+col.classList.remove('role-dep','role-arr','role-alt');
+const st=col.querySelector('strong');
+if(st&&st.textContent!=='FIELD'&&st.textContent!=='SIMB')st.textContent=st.textContent.substring(0,4);
+});
 simbriefResult.innerHTML='';
 const missingAirports=[];
 sbAirports.forEach(item=>{
 const existingCols=document.querySelectorAll(`[data-icao="${item.icao}"]`);
-if(existingCols.length>0)existingCols.forEach(col=>{const st=col.querySelector('strong');if(st)st.textContent=item.label;});
+if(existingCols.length>0)existingCols.forEach(col=>{
+const st=col.querySelector('strong');
+if(st)st.textContent=item.label;
+col.classList.add(item.role);
+});
 else missingAirports.push(item);
 });
 if(missingAirports.length>0){
@@ -230,7 +242,7 @@ const icaoString=missingAirports.map(i=>i.icao).join(','),metarRes=await fetch(`
 metarText.split('\n').forEach(line=>{const stationId=line.substring(0,4).trim();if(stationId)metarDict[stationId]=line;});
 for(let idx=0;idx<missingAirports.length;idx++){
 const item=missingAirports[idx];
-const col=await createMetarColumn(item.icao,metarDict[item.icao],item.label);
+const col=await createMetarColumn(item.icao,metarDict[item.icao],item.label,item.role);
 if(idx===missingAirports.length-1){col.style.borderRight='1px solid rgba(255,255,255,0.3)';col.style.paddingRight='2rem';col.style.marginRight='-2rem';}
 simbriefResult.appendChild(col);
 }
