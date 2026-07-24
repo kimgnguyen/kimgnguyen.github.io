@@ -1,34 +1,30 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LSGG ADS-B Map</title>
-    <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden; /* Prevents scrollbars around the iframe */
-            background-color: #000; /* Prevents white flash while loading */
-        }
-        
-        #adsb-iframe {
-            width: 100%;
-            height: 100vh;
-            border: none;
-            display: block;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LSGG ADS-B Map</title>
+<style>
+body, html {
+margin: 0;
+padding: 0;
+height: 100%;
+overflow: hidden; /* Prevents scrollbars around the iframe */
+background-color: #000; /* Prevents white flash while loading */
+}
+#adsb-iframe {
+width: 100%;
+height: 100vh;
+border: none;
+display: block;
+}
+</style>
 </head>
 <body>
-
-    <!-- The ADSBExchange Map centered on LSGG -->
-    <iframe 
-        id="adsb-iframe" 
-        src="https://globe.adsbexchange.com/?airport=LSGG&zoom=9&enableLabels&extendedLabels=2&scale=0.7&altitudechart=0&hidesidebar&hidebuttons&centerReceiver&overlay=o1" 
-        title="LSGG Radar">
-    </iframe>
-
+<iframe 
+id="adsb-iframe" 
+src="https://globe.adsbexchange.com/?airport=LSGG&zoom=9&enableLabels&extendedLabels=2&scale=0.7&altitudechart=0&hidesidebar&hidebuttons&centerReceiver&overlay=o1" 
+title="LSGG Radar">
+</iframe>
 </body>
 </html>
