@@ -3,9 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
-<title>METAR</title>
-<link rel="icon" href="../img/favicon.ico" type="image/x-icon">
-<link rel="stylesheet" href="../css/style.css">
+<title>METAR & Flight Dashboard</title>
+<link rel="icon" href="img/flower-96.ico" type="image/x-icon">
+<link rel="stylesheet" href="css/style.css">
 <style>
 #metar-grid{display:flex;flex-direction:row;flex-wrap:wrap;gap:4rem;align-items:flex-start;margin-top:2rem}
 .metar-column{display:flex;flex-direction:column;gap:8px;width:115px;flex-shrink:0}
@@ -47,6 +47,7 @@
 <div class="metar-part">Temp / Dew</div>
 <div class="metar-part">Altimeter</div>
 <div class="metar-part">Sun</div>
+<div class="metar-part">Runways</div>
 </div>
 <div id="search-result" style="display:none;"></div>
 <div id="simbrief-result" style="display:contents;"></div>
@@ -68,6 +69,21 @@ const d=await r.json();
 if(d&&d[0]&&d[0].lat!==undefined&&d[0].lon!==undefined){coordsCache[icao]=[d[0].lat,d[0].lon];return coordsCache[icao];}
 }catch(e){}
 return null;
+}
+let rwyProm=null;
+async function getRwys(icao){
+if(!rwyProm)rwyProm=fetch('https://raw.githubusercontent.com/davidmegginson/ourairports-data/main/runways.csv').then(r=>r.ok?r.text():null).catch(()=>null);
+const d=await rwyProm;if(!d)return 'N/A';
+const m=[],lines=d.split('\n');
+for(const l of lines){
+if(l.includes(icao)){
+let cur='',inQ=false;const cols=[];
+for(let i=0;i<l.length;i++){const c=l[i];if(c==='"')inQ=!inQ;else if(c===','&&!inQ){cols.push(cur);cur='';}else cur+=c;}
+cols.push(cur);
+if(cols[2]===icao&&cols[7]!=='1'){const le=cols[8],he=cols[14];if(le&&he)m.push(`${le}/${he}`);else if(le)m.push(le);}
+}
+}
+return m.length?m.join(', '):'None';
 }
 function getSunTimes(lat,lon){
 const n=new Date(),start=new Date(Date.UTC(n.getUTCFullYear(),0,0)),dayOfYear=Math.floor((n-start)/86400000);
@@ -111,7 +127,7 @@ const priority={'LIFR':4,'IFR':3,'MVFR':2,'VFR':1};
 return priority[visCat]>priority[ceilCat]?visCat:ceilCat;
 }
 function categorizeMetar(rawString){
-const rows={cat:'VFR',time:'',wind:'',vis:'',rvr:'',wx:'',clouds:'',temp:'',alt:'',sun:''};
+const rows={cat:'VFR',time:'',wind:'',vis:'',rvr:'',wx:'',clouds:'',temp:'',alt:'',sun:'',rwys:''};
 if(!rawString)return rows;
 const parts=rawString.trim().split(/\s+/);
 if(parts[0]&&parts[0].length===4&&/^[A-Z0-9]{4}$/.test(parts[0]))parts.shift();
@@ -157,8 +173,10 @@ titleLink.appendChild(titleStrong);
 column.appendChild(titleLink);
 if(rawMetar){
 const parsedData=categorizeMetar(rawMetar);
-const c=await fetchCoords(icao.slice(0,4));
+const pureIcao=icao.slice(0,4);
+const [c,r]=await Promise.all([fetchCoords(pureIcao),getRwys(pureIcao)]);
 if(c)parsedData.sun=getSunTimes(c[0],c[1]);
+parsedData.rwys=r;
 const catDiv=document.createElement('div');
 catDiv.className='metar-part';
 const badgeSpan=document.createElement('span');
@@ -166,15 +184,15 @@ badgeSpan.className=`cat-badge cat-${parsedData.cat.toLowerCase()}`;
 badgeSpan.textContent=parsedData.cat;
 catDiv.appendChild(badgeSpan);
 column.appendChild(catDiv);
-['time','wind','vis','rvr','wx','clouds','temp','alt','sun'].forEach(key=>{
+['time','wind','vis','rvr','wx','clouds','temp','alt','sun','rwys'].forEach(key=>{
 const partDiv=document.createElement('div');
 partDiv.className='metar-part';
 partDiv.innerHTML=parsedData[key]||'&nbsp;';
-if(parsedData[key])partDiv.title=parsedData[key];
+if(parsedData[key])partDiv.title=parsedData[key].replace(/<[^>]*>?/gm,'');
 column.appendChild(partDiv);
 });
 }else{
-for(let i=0;i<9;i++){
+for(let i=0;i<10;i++){
 const errDiv=document.createElement('div');
 errDiv.className='metar-part';
 errDiv.innerHTML='&nbsp;';
