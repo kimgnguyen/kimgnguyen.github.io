@@ -209,7 +209,14 @@ container.appendChild(col);
 getMetarData();
 setInterval(getMetarData,900000);
 const searchInput=document.getElementById('icao-search'),searchResultContainer=document.getElementById('search-result'),mapContainer=document.getElementById('map-container'),simbriefBtn=document.getElementById('simbrief-btn'),simbriefResult=document.getElementById('simbrief-result'),toggleMapBtn=document.getElementById('toggle-map-btn');
-toggleMapBtn.addEventListener('click',()=>mapContainer.style.display=mapContainer.style.display==='none'||mapContainer.style.display===''?'block':'none');
+toggleMapBtn.addEventListener('click',()=>{
+if(!mapContainer.innerHTML.includes('iframe')){
+const majors=["KJFK","EGLL","LFPG","RJTT","OMDB","YSSY","KLAX","EDDF","EHAM","WSSS","VHHH"];
+const randIcao=majors[Math.floor(Math.random()*majors.length)];
+mapContainer.innerHTML=`<iframe src="https://globe.adsbexchange.com/?airport=${randIcao}&zoom=9&enableLabels&extendedLabels=2&scale=0.7&altitudechart=0&hidesidebar&hidebuttons&centerReceiver&overlay=o1" title="Random Radar"></iframe>`;
+}
+mapContainer.style.display=mapContainer.style.display==='none'||mapContainer.style.display===''?'block':'none';
+});
 simbriefBtn.addEventListener('click',async function(){
 simbriefResult.innerHTML=`<div class="metar-column" style="border-right:1px solid rgba(255,255,255,0.3);padding-right:2rem;margin-right:-2rem"><strong>SIMB</strong><div class="metar-part">Fetching...</div></div>`;
 try{
