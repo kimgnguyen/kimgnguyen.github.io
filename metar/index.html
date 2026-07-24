@@ -148,6 +148,7 @@ return rows;
 async function createMetarColumn(icao,rawMetar,label=null){
 const column=document.createElement('div');
 column.className='metar-column';
+column.setAttribute('data-icao',icao.slice(0,4));
 const titleLink=document.createElement('a');
 titleLink.href=`https://aviationweather.gov/data/metar/?id=${icao}`;
 titleLink.target='_blank';
@@ -216,14 +217,23 @@ const sbAirports=[];
 if(org)sbAirports.push({icao:org,label:`${org} (DEP)`});
 if(dest)sbAirports.push({icao:dest,label:`${dest} (ARR)`});
 if(sbData.alternate?.icao_code)sbAirports.push({icao:sbData.alternate.icao_code,label:`${sbData.alternate.icao_code} (ALT)`});
-const icaoString=sbAirports.map(i=>i.icao).join(','),metarRes=await fetch(`https://metar.vatsim.net/${icaoString}`),metarText=await metarRes.text(),metarDict={};
-metarText.split('\n').forEach(line=>{const stationId=line.substring(0,4).trim();if(stationId)metarDict[stationId]=line;});
+document.querySelectorAll('.metar-column strong').forEach(st=>{if(st.textContent!=='FIELD'&&st.textContent!=='SIMB')st.textContent=st.textContent.substring(0,4);});
 simbriefResult.innerHTML='';
-for(let idx=0;idx<sbAirports.length;idx++){
-const item=sbAirports[idx];
+const missingAirports=[];
+sbAirports.forEach(item=>{
+const existingCols=document.querySelectorAll(`[data-icao="${item.icao}"]`);
+if(existingCols.length>0)existingCols.forEach(col=>{const st=col.querySelector('strong');if(st)st.textContent=item.label;});
+else missingAirports.push(item);
+});
+if(missingAirports.length>0){
+const icaoString=missingAirports.map(i=>i.icao).join(','),metarRes=await fetch(`https://metar.vatsim.net/${icaoString}`),metarText=await metarRes.text(),metarDict={};
+metarText.split('\n').forEach(line=>{const stationId=line.substring(0,4).trim();if(stationId)metarDict[stationId]=line;});
+for(let idx=0;idx<missingAirports.length;idx++){
+const item=missingAirports[idx];
 const col=await createMetarColumn(item.icao,metarDict[item.icao],item.label);
-if(idx===sbAirports.length-1){col.style.borderRight='1px solid rgba(255,255,255,0.3)';col.style.paddingRight='2rem';col.style.marginRight='-2rem';}
+if(idx===missingAirports.length-1){col.style.borderRight='1px solid rgba(255,255,255,0.3)';col.style.paddingRight='2rem';col.style.marginRight='-2rem';}
 simbriefResult.appendChild(col);
+}
 }
 }catch(error){simbriefResult.innerHTML=`<div class="metar-column" style="border-right:1px solid rgba(255,255,255,0.3);padding-right:2rem;margin-right:-2rem"><strong>SIMB</strong><div class="metar-part">No flight.</div></div>`;}
 });
